@@ -1,0 +1,215 @@
+PDF TO VISUAL NOVEL - BUILD PLAN
+================================
+
+Project folder: games/book-to-visual-novel
+Status: Phase A prototype code is in place. It has not been run through a full
+PDF-to-game generation yet. Art generation, choices, OCR, and other phases remain
+future work.
+
+
+1. GOAL
+-------
+
+Build a desktop program that accepts a user-selected PDF book and turns it into
+an editable, playable visual-novel project. The first output target should be a
+Ren'Py desktop game, since that is the engine used by the reference game and is
+already runnable in this workspace.
+
+The generated work should capture broad presentation choices observed in the
+reference (cinematic scene illustrations, expressive characters, paced
+narration and dialogue, layered 2D motion, atmospheric sound, and a persistent
+visual-novel dialogue UI). It should use newly written story text and newly
+created art, rather than copying the reference game's characters, dialogue, or
+image assets.
+
+
+2. REFERENCE GAME ANALYSIS
+-------------------------
+
+Packaging and engine
+- The APK is a Ren'Py game, built with Ren'Py 8.5.3.
+- Its story scripts are compiled .rpyc files, not the original editable .rpy
+  source. The game data is packaged in the APK's assets/x-game tree.
+- The working desktop version was made by restoring the Android asset paths
+  and running the game in the desktop Ren'Py engine. This indicates a generated
+  Ren'Py project is the practical format for the new tool too.
+
+Presentation observed in the running game and assets
+- 16:9, cinematic scene layout with large illustrated backgrounds/cutaways.
+- Bold, saturated color and dramatic lighting, including strong neon accents.
+- Dialogue and narration sit in a wide, dark box with a bright pink outline and
+  large white text. Quick controls are visible across the top edge.
+- Scenes progress as paced visual-novel passages, with standard history, save,
+  load, skip, and auto controls.
+- Asset organization separates scene art, character/expression art, GUI, music,
+  ambience, effects, and video.
+
+Motion and sound observed in the package
+- Most scene assets are still WebP illustrations. Character expression sheets
+  and alternate cut images can support expression changes and layered poses.
+- A numbered 24-image sequence indicates at least one frame-based animation.
+- A short WebM clip provides a video-based motion option.
+- Asset names and custom compiled scripts identify layered transforms, comic
+  panels, bubbles, page-peel transitions, and other scene effects. The exact
+  source implementation is not present, so these are inferred from package
+  contents rather than copied from source.
+- The audio folder contains dozens of music, ambience, and sound-effect files;
+  the game uses audio cues to reinforce locations and important actions.
+
+
+3. PRODUCT FLOW
+---------------
+
+1. User opens PDF Story Studio and selects a PDF.
+2. The program checks the file, page count, text availability, and size, then
+   shows an extraction preview with page numbers.
+3. The story planner produces a book outline, character list, setting notes,
+   timeline, key events, and unresolved extraction issues.
+4. The user chooses an adaptation mode, target length, content rating, and
+   interaction level. The user can review/edit the outline before generation.
+5. The writer turns the approved outline into scenes, narration, dialogue, and
+   optional choices while keeping references to the source page ranges.
+6. The art planner creates consistent character descriptions and a scene-by-
+   scene visual brief. An image-generation backend creates original art.
+7. The assembler creates a Ren'Py project and opens a preview. The user can
+   revise text, replace art, replay scenes, and export/share the project.
+
+
+4. TECHNICAL DESIGN
+-------------------
+
+Desktop application
+- Start with a simple local desktop GUI: Select PDF, Preview, Generate, and
+  Play buttons, plus clear progress and error messages.
+- Keep files for each book in a separate project folder. Store project data in
+  readable JSON and generated media in ordinary folders so it can be edited or
+  moved without the app.
+- Keep provider credentials outside project files and version control.
+
+PDF and story pipeline
+- Extract text with page boundaries and paragraph order. Detect textless or
+  image-only pages and report them; add OCR as a later optional capability.
+- Normalize the book into page-tagged chunks, then build a compact outline and
+  character/event reference. Do not send a whole long book as one prompt.
+- Generate the screenplay one chapter/scene at a time using the outline and
+  continuity notes. Save page references on each adapted scene for traceability.
+- Store scenes with a stable schema: scene ID, source pages, location, cast,
+  time, narration, dialogue, choices, audio cues, visual brief, and motion cues.
+- Provide a model-provider interface so writing can use a chosen hosted model
+  or local model without changing the Ren'Py exporter. Never hard-code a single
+  provider or API key into the generated game.
+
+Original visual direction
+- Make a reusable style guide inspired by the reference's broad design:
+  cinematic 16:9 framing, vivid color and lighting, expressive characters,
+  dark dialogue panels, bright accent borders, and clean high-contrast text.
+- Generate a character sheet first, then reuse it as visual reference for that
+  character in later scenes to improve consistency.
+- Generate new backgrounds, character portraits, expression variants, and
+  comic panels for the uploaded book. Keep the reference APK's images and
+  characters out of generated projects.
+- Support an image-provider adapter and a manual-art path so users can replace
+  generated images with their own illustrations.
+
+Motion and audio
+- Use still-image motion as the default: slow pan/zoom, layered parallax,
+  fades, cross-dissolves, and expression swaps. This gives motion without
+  requiring a video for every scene.
+- Reserve hand-made/generated frame sequences, short clips, and comic-panel
+  animation for a small number of turning points. Keep these optional to manage
+  generation cost and rendering performance.
+- Attach music/ambience to locations and sound effects to selected events.
+  Provide mute/volume controls and avoid generating continuous audio by default.
+
+Ren'Py exporter
+- Convert the scene schema into readable Ren'Py scripts, screens, and config.
+- Keep generated text and asset references separate from exporter templates.
+- Reuse the successful desktop runtime approach for preview. First target
+  Linux desktop; add other desktop platforms only after the output structure is
+  stable.
+- Keep project source editable. Make a packaged build/export step a separate
+  action from generation.
+
+
+5. IMPLEMENTATION PHASES
+------------------------
+
+Phase A - Minimal playable prototype
+- Build the local GUI and project-folder format.
+- Accept text-based PDFs and extract page-aware text.
+- Create a short outline, character sheet, and a handful of scenes.
+- Generate scene dialogue and narration into the stable scene schema.
+- Use placeholder art and export a playable Ren'Py project.
+- Acceptance: a user can select a short PDF, inspect its extracted text and
+  outline, generate a short story, and play it through from start to finish.
+
+Phase B - Visual identity
+- Add the configurable style guide and consistent character references.
+- Connect one image-generation backend; create original locations, characters,
+  and expression variants.
+- Add the dialogue UI, menus, scene composition, and accessible font sizing.
+- Acceptance: the same character remains visually recognizable across several
+  generated scenes, and the exported game has a coherent visual presentation.
+
+Phase C - Motion, sound, and interactivity
+- Add pan/zoom and parallax presets, dissolves, expression changes, and a few
+  optional frame/clip effects.
+- Add location music, ambience, and event sound cues.
+- Generate a small number of choices with clear branches and return/ending
+  paths; keep choices optional for books that work better as linear stories.
+- Acceptance: choices lead to valid scenes/endings and the game remains
+  playable when optional media is absent.
+
+Phase D - Long books and robustness
+- Add chunked extraction/generation, chapter-level progress saves, continuity
+  checks, retry/resume, and useful recovery from failed model/media requests.
+- Add OCR for scanned pages as an optional installable component.
+- Add project editing, regenerate-one-scene, replace-asset, and export tools.
+- Acceptance: interrupted work can resume without regenerating completed
+  chapters, and every scene retains source page references.
+
+Phase E - Packaging and sharing
+- Make a one-click desktop build/export for the generated game.
+- Document provider setup, local data locations, model/image costs, and how to
+  share a generated project without including private credentials.
+- Add Windows/macOS support if requested and after Linux output is reliable.
+
+
+6. SCOPE AND QUALITY RULES
+--------------------------
+
+- Make the first prototype create a short, playable adaptation rather than
+  attempting a full-length book in one generation pass.
+- Let the user review the outline and screenplay before spending time/cost on
+  image generation.
+- Keep PDF text, model prompts, generated dialogue, and asset manifests in
+  separate files with page references and scene IDs.
+- Handle text-based PDFs first; clearly report when a scanned PDF needs OCR.
+- Use original generated or user-supplied media. Do not ship the reference
+  game's assets or source APK in this project.
+- Make adaptation mode explicit: faithful adaptation for material the user is
+  authorized to adapt, or a new story using only selected themes and premises.
+- Preserve user control over length, content rating, linear/branching format,
+  visual detail, and media-generation budget.
+
+
+7. OPEN DECISIONS FOR IMPLEMENTATION
+------------------------------------
+
+- Which writing model/provider should the first version support?
+- Which image-generation provider should create character and scene art?
+- Should PDF processing and generation be local-only, cloud-assisted, or offer
+  both modes?
+- What is the target default: a short 10-15 minute story or a longer chaptered
+  adaptation?
+- Should the MVP offer choices, or keep the first adaptation linear?
+- Which additional operating systems matter after the Linux prototype?
+
+
+8. FIRST BUILD MILESTONE
+------------------------
+
+Implement Phase A only: a local PDF picker, page-aware extraction, editable
+outline, short scene schema, placeholder art, and a playable Ren'Py export.
+This validates the complete PDF-to-playable-story path before adding paid or
+time-intensive art and animation generation.

@@ -1,0 +1,14 @@
+.studio-data/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.DS_Store
+*.pdf
+*.zip
+*.log

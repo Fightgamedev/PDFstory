@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PDF Story Studio</title>
+  <link rel="stylesheet" href="/web/style.css">
+  <script src="/web/app.js" defer></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand-mark" aria-hidden="true">P<span>V</span></div>
+      <div>
+        <p class="eyebrow">LOCAL STORY WORKSHOP</p>
+        <h1>PDF Story Studio</h1>
+      </div>
+      <div class="engine-tag">REN'PY EXPORT</div>
+    </header>
+
+    <section class="intro panel">
+      <div class="intro-copy">
+        <p class="eyebrow accent">FROM BOOK TO PLAYABLE STORY</p>
+        <h2>Give a book a new frame.</h2>
+        <p>Extract a book's structure, shape it into an original visual-novel screenplay, and export a playable Ren'Py project.</p>
+      </div>
+      <div class="intro-art" aria-hidden="true"><span class="orb orb-a"></span><span class="orb orb-b"></span><span class="orbit"></span></div>
+    </section>
+
+    <section class="panel setup-panel">
+      <div class="section-heading">
+        <div class="step">01</div>
+        <div><p class="eyebrow">SOURCE & SETTINGS</p><h2>Choose your book</h2></div>
+      </div>
+
+      <div class="upload-row">
+        <label class="file-picker" for="pdf-file">
+          <span class="upload-icon" aria-hidden="true">↑</span>
+          <span><strong id="file-name">Select a PDF</strong><small>Text-based PDF, up to 80 MB</small></span>
+          <input id="pdf-file" type="file" accept="application/pdf,.pdf">
+        </label>
+        <button id="extract-button" class="button button-primary" disabled>Read PDF</button>
+      </div>
+
+      <div class="mode-tabs" role="tablist" aria-label="Choose a story generation method">
+        <button id="local-tab" class="mode-tab active" type="button" role="tab" aria-selected="true" aria-controls="mode-details" data-mode="local">
+          <strong>Do it locally</strong><span>No key · private · works offline</span>
+        </button>
+        <button id="openai-tab" class="mode-tab" type="button" role="tab" aria-selected="false" aria-controls="mode-details" data-mode="openai">
+          <strong>Original project</strong><span>OpenAI story generation</span>
+        </button>
+      </div>
+      <input id="generation-mode" type="hidden" value="local">
+      <div id="mode-details" class="mode-details" role="tabpanel" aria-live="polite">
+        <h3 id="generation-title">Local story builder</h3>
+        <p id="generation-note">Works offline with no API key. It finds recurring words and moments in the PDF, writes a short template-based story, and paints original illustrated scenes on this computer.</p>
+      </div>
+      <div class="settings-grid">
+        <label>Adaptation mode
+          <select id="adaptation-mode">
+            <option value="inspired" selected>New story from broad themes</option>
+            <option value="faithful">Faithful adaptation (authorized works)</option>
+          </select>
+        </label>
+        <label>Target scenes
+          <select id="scene-count">
+            <option value="3">3 scenes · short</option>
+            <option value="5" selected>5 scenes · standard</option>
+            <option value="8">8 scenes · extended</option>
+          </select>
+        </label>
+        <label id="model-field" class="hidden">Text model
+          <input id="model-name" type="text" value="gpt-6-astra" autocomplete="off">
+        </label>
+        <label id="key-field" class="hidden">OpenAI API key
+          <input id="api-key" type="password" placeholder="Required to generate story text" autocomplete="off">
+        </label>
+      </div>
+    </section>
+
+    <section id="source-panel" class="panel hidden">
+      <div class="section-heading compact">
+        <div class="step">02</div>
+        <div><p class="eyebrow">EXTRACTION PREVIEW</p><h2 id="source-title">Book text</h2></div>
+        <div id="source-stats" class="stat-pill"></div>
+      </div>
+      <div id="page-preview" class="page-preview"></div>
+      <button id="outline-button" class="button button-primary" disabled>Build editable outline</button>
+    </section>
+
+    <section id="outline-panel" class="panel hidden">
+      <div class="section-heading compact">
+        <div class="step">03</div>
+        <div><p class="eyebrow">STORY PLAN</p><h2>Review and edit the outline</h2></div>
+      </div>
+      <p class="helper">This is the story map used to write the scenes. You can edit the JSON before continuing.</p>
+      <textarea id="outline-json" class="code-editor" spellcheck="false" aria-label="Editable story outline"></textarea>
+      <button id="story-button" class="button button-primary" disabled>Write screenplay</button>
+    </section>
+
+    <section id="story-panel" class="panel hidden">
+      <div class="section-heading compact">
+        <div class="step">04</div>
+        <div><p class="eyebrow">PLAYABLE DRAFT</p><h2 id="story-title">Your story</h2></div>
+      </div>
+      <div id="story-summary" class="story-summary"></div>
+      <div class="actions">
+        <button id="play-button" class="button button-primary">Play preview</button>
+        <a id="download-link" class="button button-secondary hidden" href="#">Download Ren'Py project</a>
+      </div>
+      <details>
+        <summary>View screenplay JSON</summary>
+        <textarea id="story-json" class="code-editor story-editor" spellcheck="false" readonly aria-label="Generated screenplay"></textarea>
+      </details>
+    </section>
+
+    <footer>
+      <div id="status" class="status" role="status" aria-live="polite">Choose a PDF to begin.</div>
+      <div id="progress-wrap" class="progress-wrap hidden"><div id="progress-bar" class="progress-bar"></div></div>
+      <p class="footer-note">Phase A prototype · local illustrated scenes · Linux desktop export</p>
+    </footer>
+
+    <details id="debug-panel" class="debug-panel">
+      <summary>Debug console <span id="debug-count">0 entries</span></summary>
+      <p class="helper">Copy this log and paste it into your message. It includes progress and error details, but never includes your API key or PDF text.</p>
+      <div class="debug-actions">
+        <button id="copy-debug" class="button button-secondary" type="button">Copy debug log</button>
+        <button id="clear-debug" class="button button-secondary" type="button">Clear log</button>
+      </div>
+      <textarea id="debug-log" class="debug-log" readonly spellcheck="false" aria-label="Copyable debug log">App ready.</textarea>
+    </details>
+  </main>
+</body>
+</html>
